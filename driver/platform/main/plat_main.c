@@ -6,6 +6,7 @@
  */
 
 #include "soc_errno.h"
+#include "soc_osal.h"
 #if defined(WSCFG_PLAT_DIAG_LOG_OUT)
 #include "zdiag_adapt_layer.h"
 #endif
@@ -369,6 +370,9 @@ oal_int32 plat_reset_reinit_etc(void)
 td_s32 hcc_init_etc(td_void)
 {
     hcc_channel_init channel_init;
+    td_s32 retry_count = 0;
+    td_s32 max_retries = 10;  /* Maximum 10 retries */
+    td_s32 retry_delay_ms = 500;  /* 500ms delay between retries */
 
 #ifdef CONFIG_HCC_SUPPORT_SDIO
     channel_init.bus_type = HCC_BUS_SDIO;
@@ -382,10 +386,29 @@ td_s32 hcc_init_etc(td_void)
     channel_init.queue_cfg = hcc_get_queue_cfg(&channel_init.queue_len);
     channel_init.channel_name = HCC_CHANNEL_AP;
     channel_init.unc_pool_size = 0;
-    if (hcc_init(&channel_init) != HI_ERR_SUCCESS) {
-        oal_print_err("hcc init: fail\r\n");
+
+    /* Retry HCC initialization with delays to allow USB enumeration */
+    for (retry_count = 0; retry_count < max_retries; retry_count++) {
+        if (hcc_init(&channel_init) == HI_ERR_SUCCESS) {
+            oal_print_warning("hcc init: success on retry %d\r\n", retry_count);
+            break;
+        }
+
+        oal_print_warning("hcc init: fail on attempt %d, retrying in %dms...\r\n",
+                         retry_count + 1, retry_delay_ms);
+        osal_msleep(retry_delay_ms);
+
+        /* Increase delay for subsequent retries */
+        if (retry_count > 3) {
+            retry_delay_ms = 1000;  /* Use 1s delay after first few attempts */
+        }
+    }
+
+    if (retry_count >= max_retries) {
+        oal_print_err("hcc init: fail after %d retries\r\n", max_retries);
         return EXT_ERR_FAILURE;
     }
+
 #ifdef CONFIG_HCC_SUPPORT_TEST
     hcc_test_init();
 #endif

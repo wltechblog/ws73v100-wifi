@@ -352,7 +352,7 @@ WIFI_HMAC_TCM_TEXT osal_u32 frw_tx_wifi_netbuf_by_hcc(oal_netbuf_stru *netbuf, o
     osal_u32 len_algin = HCC_DMA_DATA_ALIGN;
 
     hcc_handler *hcc = hcc_get_handler(HCC_CHANNEL_AP);
-    if (hcc != OSAL_NULL) {
+    if (hcc != OSAL_NULL && hcc->bus != OSAL_NULL) {
         len_algin = hcc->bus->len_align;
     }
 

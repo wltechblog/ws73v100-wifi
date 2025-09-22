@@ -371,8 +371,8 @@ td_s32 hcc_init_etc(td_void)
 {
     hcc_channel_init channel_init;
     td_s32 retry_count = 0;
-    td_s32 max_retries = 10;  /* Maximum 10 retries */
-    td_s32 retry_delay_ms = 500;  /* 500ms delay between retries */
+    td_s32 max_retries = 20;  /* Maximum 20 retries - increased for USB enumeration */
+    td_s32 retry_delay_ms = 1000;  /* 1000ms delay between retries - increased for stability */
 
 #ifdef CONFIG_HCC_SUPPORT_SDIO
     channel_init.bus_type = HCC_BUS_SDIO;
@@ -398,9 +398,9 @@ td_s32 hcc_init_etc(td_void)
                          retry_count + 1, retry_delay_ms);
         osal_msleep(retry_delay_ms);
 
-        /* Increase delay for subsequent retries */
-        if (retry_count > 3) {
-            retry_delay_ms = 1000;  /* Use 1s delay after first few attempts */
+        /* Increase delay for subsequent retries to allow more time for USB stability */
+        if (retry_count > 5) {
+            retry_delay_ms = 2000;  /* Use 2s delay after first few attempts */
         }
     }
 

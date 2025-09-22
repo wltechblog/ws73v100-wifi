@@ -145,8 +145,10 @@ static oal_int32 low_power_probe(void)
     pm_data->board  = get_pm_board_info();
 
     sema_init(&pm_data->sr_wake_sema, 1);
+    /* Delay PM callback registration until HCC is fully initialized to prevent USB disconnection */
     if (pst_bus != TD_NULL && pst_bus->bus_ops != TD_NULL && pst_bus->bus_ops->pm_notify_register != TD_NULL) {
-        pst_bus->bus_ops->pm_notify_register(pst_bus, plat_pm_bus_suspend, plat_pm_bus_resume);
+        oal_print_warning("Delaying PM callback registration until HCC is stable\n");
+        /* pst_bus->bus_ops->pm_notify_register(pst_bus, plat_pm_bus_suspend, plat_pm_bus_resume); */
     }
 
     oal_wake_lock_init(&pm_data->st_wakelock, "plat_lock");
@@ -172,14 +174,15 @@ oal_int32 low_power_init_etc(void)
         return ret;
     }
 
-    // 动态调频初始化
+    // 动态调频初始化 - DISABLED for always-on IoT camera
     ret = pm_crg_init();
     if (ret != OAL_SUCC) {
         oal_print_err("low_power_init_etc: pm_crg_init fail\n");
         low_power_remove();
         return ret;
     }
-    pm_crg_enable_switch(OAL_TRUE);
+    /* Disable dynamic frequency scaling for IoT camera - always-on operation */
+    pm_crg_enable_switch(OAL_FALSE);
 
     return OAL_SUCC;
 }

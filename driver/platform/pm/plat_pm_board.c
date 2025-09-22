@@ -241,8 +241,14 @@ td_s32 pm_board_power_gpio_init(td_void)
                            ((power_on_level != GPIO_LOWLEVEL) ? GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW),
                            PROC_NAME_GPIO_POWER_ON);
     if (ret != BOARD_SUCC) {
-        oal_print_err("board_power_gpio_init::request power_gpio fail. \n");
-        goto GET_POWER_GPIO_FAIL;
+        oal_print_warning("board_power_gpio_init::request power_gpio fail, trying to set direction directly. \n");
+        /* GPIO might already be exported, try to set direction and value directly */
+        ret = gpio_direction_output(power_gpio_idx, power_on_level);
+        if (ret != BOARD_SUCC) {
+            oal_print_err("board_power_gpio_init::set gpio direction fail. \n");
+            goto GET_POWER_GPIO_FAIL;
+        }
+        oal_print_warning("board_power_gpio_init::using existing GPIO export. \n");
     }
 #endif
 

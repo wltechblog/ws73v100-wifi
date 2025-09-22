@@ -27,6 +27,7 @@
 #include "plat_debug.h"
 #include "oal_ext_if.h"
 #endif
+#include "soc_osal.h"
 #include "plat_firmware.h"
 #include "hcc_bus.h"
 #if defined(_PRE_OS_VERSION) && defined(_PRE_OS_VERSION_LINUX) && (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
@@ -206,6 +207,11 @@ td_s32 pm_board_power_gpio_init(td_void)
     }
     power_gpio_idx = oal_strtol(cfg_buff, NULL, NUM_BASE_10);
     if (!pm_board_is_gpio_idx_valid(power_gpio_idx)) {
+        if (power_gpio_idx == -1) {
+            oal_print_warning("board_power_gpio_init::power_gpio disabled (idx=-1), assuming device always powered. \n");
+            g_pm_board_info.power_gpio = -1;
+            return BOARD_SUCC;  /* Skip power GPIO control for always-on IoT camera */
+        }
         oal_print_err("board_power_gpio_init::get power_gpio_idx invalid, value=[%d]. \n", power_gpio_idx);
         goto GET_POWER_GPIO_FAIL;
     }
@@ -241,14 +247,29 @@ td_s32 pm_board_power_gpio_init(td_void)
                            ((power_on_level != GPIO_LOWLEVEL) ? GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW),
                            PROC_NAME_GPIO_POWER_ON);
     if (ret != BOARD_SUCC) {
-        oal_print_warning("board_power_gpio_init::request power_gpio fail, trying to set direction directly. \n");
-        /* GPIO might already be exported, try to set direction and value directly */
-        ret = gpio_direction_output(power_gpio_idx, power_on_level);
+        oal_print_warning("board_power_gpio_init::request power_gpio fail, trying alternatives. \n");
+
+        /* Try to free the GPIO first in case it's stuck */
+        gpio_free(power_gpio_idx);
+        osal_mdelay(10);  /* Small delay */
+
+        /* Try to request again */
+        ret = gpio_request_one(power_gpio_idx,
+                               ((power_on_level != GPIO_LOWLEVEL) ? GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW),
+                               PROC_NAME_GPIO_POWER_ON);
         if (ret != BOARD_SUCC) {
-            oal_print_err("board_power_gpio_init::set gpio direction fail. \n");
-            goto GET_POWER_GPIO_FAIL;
+            /* GPIO might already be exported, try to set direction and value directly */
+            ret = gpio_direction_output(power_gpio_idx, power_on_level);
+            if (ret != BOARD_SUCC) {
+                oal_print_warning("board_power_gpio_init::direct gpio control also failed, assuming device is powered. \n");
+                /* For always-on IoT camera, assume device is already powered and continue */
+                ret = BOARD_SUCC;
+            } else {
+                oal_print_warning("board_power_gpio_init::using existing GPIO export. \n");
+            }
+        } else {
+            oal_print_warning("board_power_gpio_init::GPIO request succeeded on retry. \n");
         }
-        oal_print_warning("board_power_gpio_init::using existing GPIO export. \n");
     }
 #endif
 

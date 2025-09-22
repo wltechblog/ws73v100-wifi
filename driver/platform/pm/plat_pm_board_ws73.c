@@ -103,6 +103,13 @@ static td_s32 ws73_board_power_on_gpio(td_void)
 {
     td_s32 ret;
     td_s32 power_gpio_idx = get_pm_board_info()->power_gpio;
+
+    /* Skip GPIO control for always-on IoT camera */
+    if (power_gpio_idx == -1) {
+        oal_print_warning("ws73_board_power_on_gpio: power GPIO disabled, assuming device always powered \n");
+        return EOK;
+    }
+
 #if defined(CONFIG_GPIO_USING_HI_DRV)
     ret = hi_drv_gpio_write_bit(power_gpio_idx, get_pm_board_info()->power_on_level);
 #else
@@ -121,6 +128,13 @@ static td_s32 ws73_board_power_off_gpio(td_void)
 {
     td_s32 ret;
     td_s32 power_gpio_idx = get_pm_board_info()->power_gpio;
+
+    /* Skip GPIO control for always-on IoT camera - never power off */
+    if (power_gpio_idx == -1) {
+        oal_print_warning("ws73_board_power_off_gpio: power GPIO disabled, keeping device always powered \n");
+        return EOK;
+    }
+
 #if defined(CONFIG_GPIO_USING_HI_DRV)
     ret = hi_drv_gpio_write_bit(power_gpio_idx, (GPIO_HIGHLEVEL - get_pm_board_info()->power_on_level));
 #else

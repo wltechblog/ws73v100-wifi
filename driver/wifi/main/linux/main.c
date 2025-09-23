@@ -854,6 +854,7 @@ oal_module_exit(mpxx_host_main_exit);
 #endif
 
 oal_module_license("GPL");
+MODULE_SOFTDEP("pre: ws73v100_plat");
 
 #ifdef __cplusplus
 #if __cplusplus

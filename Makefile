@@ -105,14 +105,14 @@ ini_light: prepare_light
 wifi: prepare
 	cd $(WIFI_SRC_DIR) && \
     CONFIG_WSXX_KERNEL_MODULES_BUILD_SUPPORT=yes\
-    make -j$(CPU_NUM) && cp -f wifi_soc.ko $(OUTPUT_BIN_DIR)/
-	$(call echo_ok,WIFI ko built success in $(OUTPUT_BIN_DIR)/wifi_soc.ko!)
+    make -j$(CPU_NUM) && cp -f ws73v100.ko $(OUTPUT_BIN_DIR)/
+	$(call echo_ok,WIFI ko built success in $(OUTPUT_BIN_DIR)/ws73v100.ko!)
 
 wifi_light: prepare_light
 	cd $(WIFI_SRC_DIR) && \
     CONFIG_WSXX_KERNEL_MODULES_BUILD_SUPPORT=yes\
-    make -j$(CPU_NUM) && cp -f wifi_soc.ko $(OUTPUT_BIN_DIR)/
-	$(call echo_ok, wifi_light ko built success in $(OUTPUT_BIN_DIR)/wifi_soc.ko!)
+    make -j$(CPU_NUM) && cp -f ws73v100.ko $(OUTPUT_BIN_DIR)/
+	$(call echo_ok, wifi_light ko built success in $(OUTPUT_BIN_DIR)/ws73v100.ko!)
 
 wifi_clean: prepare
 	cd $(WIFI_SRC_DIR) && \
@@ -124,8 +124,8 @@ wifi_clean: prepare
 platform: prepare ini
 	cd $(PLATFORM_SRC_DIR) && \
     BUILD_DEVICE_WITH_ROM_REPO=yes\
-    make -j$(CPU_NUM) && cp -f plat_soc.ko $(OUTPUT_BIN_DIR)/
-	$(call echo_ok,platform ko built success in $(OUTPUT_BIN_DIR)/plat_soc.ko!)
+    make -j$(CPU_NUM) && cp -f ws73v100_plat.ko $(OUTPUT_BIN_DIR)/
+	$(call echo_ok,platform ko built success in $(OUTPUT_BIN_DIR)/ws73v100_plat.ko!)
 
 platform_light: prepare_light ini_light
 	cd $(PLATFORM_SRC_DIR) && \

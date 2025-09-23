@@ -27,7 +27,7 @@ ifeq ($(strip $(WSCFG_KERNEL_DIR)),)
 $(error ERR: WSCFG_KERNEL_DIR is NULL)
 endif
 
-KO_NAME := plat_soc
+KO_NAME := ws73v100_plat
 
 include $(CUR_MK_DIR)/ws73_comm_defconfig
 include $(CUR_MK_DIR)/plat_ws73_default_defconfig

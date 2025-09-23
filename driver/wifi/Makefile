@@ -25,7 +25,7 @@ REL_WAL_DIR := $(call calc_relpath,$(WAL_DIR),$(CUR_MK_DIR))
 REL_FE_DIR := $(call calc_relpath,$(FE_DIR),$(CUR_MK_DIR))
 REL_COMMON_DIR := $(call calc_relpath,$(COMMON_DIR),$(CUR_MK_DIR))
 
-KO_NAME := wifi_soc
+KO_NAME := ws73v100
 
 #add alg makefile
 include $(ALG_DIR)/ws73_alg_host.mk
